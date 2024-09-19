@@ -10,11 +10,15 @@ if [[ $# -eq 1 ]]; then
 else
     my_find() {
         if [[ -z $SESSION_PATHS ]]; then
-            echo "You should export env SESSION_PATHS variable"
+            echo "You should export env variable SESSION_PATHS"
             echo "Example:"
-            echo "   export SESSION_PATHS=(~/projects ~/docs)"
+            echo "   SESSION_PATHS=~/projects:~/docs"
+            echo "   export SESSION_PATHS"
         else
-            find ${SESSION_PATHS[@]} -mindepth 1 -maxdepth 1 -type d
+            IFS=':' read -r -a PATHS_LIST <<<"$SESSION_PATHS"
+            for path in "${PATHS_LIST[@]}"; do
+                find "$path" -mindepth 1 -maxdepth 1 -type d
+            done
         fi
     }
     path=$(my_find | fzf --tmux 70%,60%)
