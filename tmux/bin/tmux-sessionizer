@@ -8,7 +8,16 @@
 if [[ $# -eq 1 ]]; then
     path=$1
 else
-    path=$(find ~/projects/Games ~/projects/Tools -mindepth 1 -maxdepth 1 -type d | fzf --tmux 70%,60%)
+    my_find() {
+        if [[ -z $SESSION_PATHS ]]; then
+            echo "You should export env SESSION_PATHS variable"
+            echo "Example:"
+            echo "   export SESSION_PATHS=(~/projects ~/docs)"
+        else
+            find ${SESSION_PATHS[@]} -mindepth 1 -maxdepth 1 -type d
+        fi
+    }
+    path=$(my_find | fzf --tmux 70%,60%)
 fi
 
 if [[ -z $path ]]; then
