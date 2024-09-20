@@ -17,7 +17,7 @@ else
         else
             IFS=':' read -r -a PATHS_LIST <<<"$SESSION_PATHS"
             for path in "${PATHS_LIST[@]}"; do
-                find "$path" -mindepth 1 -maxdepth 1 -type d
+                find "$path" -mindepth 1 -maxdepth 1 -type d -not -path "$path/.git"
             done
         fi
     }
