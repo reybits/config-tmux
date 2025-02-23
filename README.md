@@ -1,3 +1,18 @@
+# Easy TMUX
+
+A streamlined and customizable TMUX configuration for enhanced terminal productivity.
+
+![TMUX session](https://github.com/andreyugolnik/config-tmux/blob/master/tmux-session.png?raw=true)
+
+## Features
+
+- **Seamless Vim / Neovim Integration** – Smooth workflow between TMUX and your favorite editor.
+- **Session Management with fzf** – Quickly switch between sessions using fuzzy finding.
+- **Lightweight Yet Functional Theme** – A clean and minimal look without sacrificing usability.
+- **Mouse & Keybindings Enhancements** – Improved navigation and pane management.
+- **Clipboard Support** – Easily copy and paste between TMUX and your system clipboard.
+- **Optimized for Performance** – Minimal overhead while maintaining essential features.
+
 ## Install
 
 1. Clone repository.
