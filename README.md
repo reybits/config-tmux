@@ -2,7 +2,7 @@
 
 1. Clone repository.
 ```sh
-$ git clone git@bitbucket.org:andreyu/config-tmux.git
+$ git clone https://github.com/andreyugolnik/config-tmux.git
 ```
 
 2. Initialize submodule.
