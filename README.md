@@ -2,7 +2,7 @@
 
 A streamlined and customizable TMUX configuration for enhanced terminal productivity.
 
-![TMUX session](https://github.com/andreyugolnik/config-tmux/blob/master/tmux-session.png?raw=true)
+![TMUX session](https://github.com/raybits/config-tmux/blob/master/tmux-session.png?raw=true)
 
 ## Features
 
@@ -17,7 +17,7 @@ A streamlined and customizable TMUX configuration for enhanced terminal producti
 
 1. Clone repository.
 ```sh
-$ git clone https://github.com/andreyugolnik/config-tmux.git
+$ git clone https://github.com/raybits/config-tmux.git
 ```
 
 2. Initialize submodule.
