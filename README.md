@@ -2,7 +2,7 @@
 
 A streamlined and customizable TMUX configuration for enhanced terminal productivity.
 
-![TMUX session](https://github.com/raybits/config-tmux/blob/master/tmux-session.png?raw=true)
+![TMUX session](https://github.com/reybits/config-tmux/blob/master/tmux-session.png?raw=true)
 
 ## Features
 
