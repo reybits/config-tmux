@@ -17,22 +17,21 @@ A streamlined and customizable TMUX configuration for enhanced terminal producti
 
 1. Clone repository.
 ```sh
-$ git clone https://github.com/raybits/config-tmux.git
+git clone https://github.com/reybits/config-tmux.git
 ```
 
 2. Initialize submodule.
 ```sh
-$ git submodule update --init
+git submodule update --init
 ```
 
 3. Link to the XDG-config path.
 ```sh
-$ ln -s /path/to/config-tmux/tmux ~/.config/tmux
+ln -s /path/to/config-tmux/tmux ~/.config/tmux
 ```
 
 4. Withing tmux install all plugins.
 `prefix + I`
-
 
 ## Useful keys
 - `prefix + f` - open / attach session
