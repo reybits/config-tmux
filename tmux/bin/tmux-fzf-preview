@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# by Andrey A. Ugolnik
+# https://github.com/reybits
+
+path=$1
+if [[ "$path" == \** ]]; then
+    session=${path:2}
+    echo -e "\033[36mSwitch to session:\033[0m"
+    echo ""
+    echo -e "\033[1;34m$session\033[0m"
+elif [[ "$path" == \!* ]]; then
+    echo "You should export env variable SESSION_PATHS."
+    echo "Example:"
+    echo "   SESSION_PATHS=~/projects:~/docs"
+    echo "   export SESSION_PATHS"
+elif [[ ! -z $path ]]; then
+    echo ""
+    echo -e "\033[36mCreate session at:\033[0m"
+    echo ""
+    tree -L1 -C --dirsfirst "$path"
+fi

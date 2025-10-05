@@ -3,17 +3,19 @@
 # https://github.com/ThePrimeagen
 #
 # completely refactored by Andrey A. Ugolnik
-# https://github.com/andreugolnik
+# https://github.com/reybits
 
 if [[ $# -eq 1 ]]; then
     path=$1
 else
     my_find() {
+        SESSIONS_LIST=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
+        for session in "${SESSIONS_LIST[@]}"; do
+            echo -e "\033[1;34m* $session\033[0m"
+        done
+
         if [[ -z $SESSION_PATHS ]]; then
-            echo "You should export env variable SESSION_PATHS"
-            echo "Example:"
-            echo "   SESSION_PATHS=~/projects:~/docs"
-            echo "   export SESSION_PATHS"
+            echo -e "\033[31m! Env SESSION_PATHS is not set.\033[0m"
         else
             IFS=':' read -r -a PATHS_LIST <<<"$SESSION_PATHS"
             for path in "${PATHS_LIST[@]}"; do
@@ -21,11 +23,25 @@ else
             done
         fi
     }
-    path=$(my_find | fzf --tmux 70%,60%)
+
+    path=$(
+        my_find |
+            fzf \
+                --tmux 90%,60% \
+                --ansi \
+                --no-sort \
+                --preview 'tmux-fzf-preview {}'
+    )
 fi
 
+# nothing selected
 if [[ -z $path ]]; then
     exit 0
+fi
+
+# remove leading leading '* ' from session name
+if [[ $path == \** ]]; then
+    path=${path:2}
 fi
 
 # format session name
