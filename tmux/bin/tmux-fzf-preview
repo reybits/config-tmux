@@ -17,5 +17,5 @@ elif [[ ! -z $path ]]; then
     echo ""
     echo -e "\033[36mCreate session at:\033[0m"
     echo ""
-    tree -L1 -C --dirsfirst "$path"
+    tree -L 1 -C --dirsfirst "$path"
 fi
