@@ -2,18 +2,23 @@
 # by Andrey A. Ugolnik
 # https://github.com/reybits
 
+# getting tmux pid
+tmux_pid=$(pgrep tmux)
+
 if [[ $# -eq 1 ]]; then
     path=$1
 else
     my_find() {
-        CURRENT_SESSION=$(tmux display-message -p '#S')
-        SESSIONS_LIST=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
-        for session in "${SESSIONS_LIST[@]}"; do
-            if [[ $session != "$CURRENT_SESSION" ]]; then
-                SESSIONS="$SESSIONS\033[1;34m* $session\033[0m\n"
-            fi
-        done
-        echo -e "$SESSIONS"
+        if ([[ -nz $TMUX ]] || [[ -nz $tmux_pid ]]) 2>/dev/null; then
+            CURRENT_SESSION=$(tmux display-message -p '#S')
+            SESSIONS_LIST=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
+            for session in "${SESSIONS_LIST[@]}"; do
+                if [[ $session != "$CURRENT_SESSION" ]]; then
+                    SESSIONS="$SESSIONS\033[1;34m* $session\033[0m\n"
+                fi
+            done
+            echo -e "$SESSIONS"
+        fi
 
         if [[ -z $SESSION_PATHS ]]; then
             echo -e "\033[31m! Env SESSION_PATHS is not set.\033[0m"
@@ -47,9 +52,6 @@ fi
 
 # format session name
 selected_name=$(basename "$path" | tr -s ".[:blank:]" "-" | tr "[:upper:]" "[:lower:]")
-
-# getting tmux pid
-tmux_pid=$(pgrep tmux)
 
 # create new session if tmux is not running or if session not exists
 if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t $selected_name 2>/dev/null; then
