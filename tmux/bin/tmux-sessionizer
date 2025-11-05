@@ -9,7 +9,7 @@ if [[ $# -eq 1 ]]; then
     path=$1
 else
     my_find() {
-        if ([[ -nz $TMUX ]] || [[ -nz $tmux_pid ]]) 2>/dev/null; then
+        if [[ -n $TMUX ]] || [[ -n $tmux_pid ]]; then
             CURRENT_SESSION=$(tmux display-message -p '#S')
             SESSIONS_LIST=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
             for session in "${SESSIONS_LIST[@]}"; do
@@ -54,7 +54,7 @@ fi
 selected_name=$(basename "$path" | tr -s ".[:blank:]" "-" | tr "[:upper:]" "[:lower:]")
 
 # create new session if tmux is not running or if session not exists
-if ([[ -z $TMUX ]] && [[ -z $tmux_pid ]]) || ! tmux has-session -t $selected_name 2>/dev/null; then
+if [[ -z $TMUX && -z $tmux_pid ]] || ! tmux has-session -t $selected_name 2>/dev/null; then
     tmux new-session -ds "$selected_name" -c "$path"
 fi
 
