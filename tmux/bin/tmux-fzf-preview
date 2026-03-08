@@ -8,14 +8,42 @@ if [[ "$path" == \** ]]; then
     echo -e "\033[36mSwitch to session:\033[0m"
     echo ""
     echo -e "\033[1;34m$session\033[0m"
+
+    # session details
+    window_count=$(tmux list-windows -t "$session" 2>/dev/null | wc -l | tr -d ' ')
+    session_path=$(tmux display-message -t "$session" -p '#{pane_current_path}' 2>/dev/null)
+    active_cmd=$(tmux display-message -t "$session" -p '#{pane_current_command}' 2>/dev/null)
+
+    echo ""
+    echo -e "\033[33mWindows:\033[0m $window_count"
+    if [[ -n $active_cmd ]]; then
+        echo -e "\033[33mActive:\033[0m  $active_cmd"
+    fi
+    if [[ -n $session_path ]]; then
+        echo -e "\033[33mPath:\033[0m    $session_path"
+    fi
+
+    # list windows
+    echo ""
+    tmux list-windows -t "$session" -F "  #{window_index}: #{window_name}#{?window_active, (active),}" 2>/dev/null
+
 elif [[ "$path" == \!* ]]; then
-    echo "You should export env variable SESSION_PATHS."
+    echo -e "\033[31mYou should export env variable SESSION_PATHS.\033[0m"
+    echo ""
     echo "Example:"
     echo "   SESSION_PATHS=~/projects:~/docs"
     echo "   export SESSION_PATHS"
-elif [[ ! -z $path ]]; then
-    echo ""
+
+elif [[ -n $path ]]; then
     echo -e "\033[36mCreate session at:\033[0m"
     echo ""
+
+    # show git branch if it's a repo
+    if git -C "$path" rev-parse --is-inside-work-tree &>/dev/null; then
+        branch=$(git -C "$path" branch --show-current 2>/dev/null)
+        echo -e "\033[33mGit branch:\033[0m $branch"
+        echo ""
+    fi
+
     tree -L 1 -C --dirsfirst "$path"
 fi
