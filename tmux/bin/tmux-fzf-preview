@@ -6,21 +6,28 @@ path=$1
 if [[ "$path" == \** ]]; then
     session=${path:2}
 
-    # session details
-    window_count=$(tmux list-windows -t "$session" 2>/dev/null | wc -l | tr -d ' ')
-    session_path=$(tmux display-message -t "$session" -p '#{pane_current_path}' 2>/dev/null)
-    active_cmd=$(tmux display-message -t "$session" -p '#{pane_current_command}' 2>/dev/null)
+    # 1. header
+    echo -e "\033[1;34m$session\033[0m"
 
-    echo -e "\033[1;34m$session\033[0m  \033[33m$window_count windows\033[0m  \033[36m$active_cmd\033[0m"
+    # 2. session path
+    session_path=$(tmux display-message -t "$session" -p '#{pane_current_path}' 2>/dev/null)
     echo -e "\033[90m$session_path\033[0m"
 
-    # list windows
-    echo ""
-    tmux list-windows -t "$session" -F "  #{window_index}: #{window_name}#{?window_active, \033[32m(active)\033[0m,}" 2>/dev/null
+    # 3. windows in one line
+    windows=""
+    while IFS= read -r win; do
+        if [[ -n $windows ]]; then
+            windows="$windows \033[90m|\033[0m $win"
+        else
+            windows="$win"
+        fi
+    done < <(tmux list-windows -t "$session" -F "#{?window_active,\033[32m#{window_index}:#{window_name}\033[0m,\033[90m#{window_index}:#{window_name}\033[0m}" 2>/dev/null)
+    echo -e "$windows"
 
-    # capture active pane content
-    echo ""
-    echo -e "\033[90m─────────────────────────────────────────\033[0m"
+    # 4. separator
+    echo -e "\033[90m────────────────────────────────────────────────────────────────────────────────\033[0m"
+
+    # 5. capture active pane content
     tmux capture-pane -t "$session" -p -e 2>/dev/null
 
 elif [[ "$path" == \!* ]]; then
