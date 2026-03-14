@@ -33,7 +33,7 @@ else
     path=$(
         my_find |
             fzf \
-                --tmux 90%,60% \
+                --tmux 90%,80% \
                 --ansi \
                 --no-sort \
                 --preview "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/bin/tmux-fzf-preview {}"
