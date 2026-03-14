@@ -5,27 +5,23 @@
 path=$1
 if [[ "$path" == \** ]]; then
     session=${path:2}
-    echo -e "\033[36mSwitch to session:\033[0m"
-    echo ""
-    echo -e "\033[1;34m$session\033[0m"
 
     # session details
     window_count=$(tmux list-windows -t "$session" 2>/dev/null | wc -l | tr -d ' ')
     session_path=$(tmux display-message -t "$session" -p '#{pane_current_path}' 2>/dev/null)
     active_cmd=$(tmux display-message -t "$session" -p '#{pane_current_command}' 2>/dev/null)
 
-    echo ""
-    echo -e "\033[33mWindows:\033[0m $window_count"
-    if [[ -n $active_cmd ]]; then
-        echo -e "\033[33mActive:\033[0m  $active_cmd"
-    fi
-    if [[ -n $session_path ]]; then
-        echo -e "\033[33mPath:\033[0m    $session_path"
-    fi
+    echo -e "\033[1;34m$session\033[0m  \033[33m$window_count windows\033[0m  \033[36m$active_cmd\033[0m"
+    echo -e "\033[90m$session_path\033[0m"
 
     # list windows
     echo ""
-    tmux list-windows -t "$session" -F "  #{window_index}: #{window_name}#{?window_active, (active),}" 2>/dev/null
+    tmux list-windows -t "$session" -F "  #{window_index}: #{window_name}#{?window_active, \033[32m(active)\033[0m,}" 2>/dev/null
+
+    # capture active pane content
+    echo ""
+    echo -e "\033[90m─────────────────────────────────────────\033[0m"
+    tmux capture-pane -t "$session" -p -e 2>/dev/null
 
 elif [[ "$path" == \!* ]]; then
     echo -e "\033[31mYou should export env variable SESSION_PATHS.\033[0m"
