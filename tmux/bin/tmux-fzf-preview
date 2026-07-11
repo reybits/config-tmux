@@ -6,29 +6,74 @@ path=$1
 if [[ "$path" == \** ]]; then
     session=${path:2}
 
-    # 1. header
-    echo -e "\033[1;34m$session\033[0m"
+    esc=$'\033'
+    reset="${esc}[0m"
+
+    # preview geometry exported by fzf (fallback when run standalone)
+    preview_lines=${FZF_PREVIEW_LINES:-0}
+    preview_cols=${FZF_PREVIEW_COLUMNS:-80}
+    (( preview_cols < 1 )) && preview_cols=80
+
+    # header lines built with real ESC codes (printed as-is via printf)
+    header=()
+
+    # 1. session name
+    header+=("${esc}[1;34m${session}${reset}")
 
     # 2. session path
     session_path=$(tmux display-message -t "$session" -p '#{pane_current_path}' 2>/dev/null)
-    echo -e "\033[90m$session_path\033[0m"
+    header+=("${esc}[90m${session_path}${reset}")
 
     # 3. windows in one line
     windows=""
     while IFS= read -r win; do
         if [[ -n $windows ]]; then
-            windows="$windows \033[90m|\033[0m $win"
+            windows="${windows} ${esc}[90m|${reset} ${win}"
         else
             windows="$win"
         fi
-    done < <(tmux list-windows -t "$session" -F "#{?window_active,\033[32m#{window_index}:#{window_name}\033[0m,\033[90m#{window_index}:#{window_name}\033[0m}" 2>/dev/null)
-    echo -e "$windows"
+    done < <(tmux list-windows -t "$session" -F "#{?window_active,${esc}[32m#{window_index}:#{window_name}${esc}[0m,${esc}[90m#{window_index}:#{window_name}${esc}[0m}" 2>/dev/null)
+    header+=("$windows")
 
-    # 4. separator
-    echo -e "\033[90m────────────────────────────────────────────────────────────────────────────────\033[0m"
+    # 4. separator sized to the preview width so it never wraps
+    sep=""
+    for (( i = 0; i < preview_cols; i++ )); do
+        sep="${sep}─"
+    done
+    header+=("${esc}[90m${sep}${reset}")
+
+    # fzf truncates long preview lines (no wrap), so each line is one row
+    header_rows=${#header[@]}
 
     # 5. capture active pane content
-    tmux capture-pane -t "$session" -p -e 2>/dev/null
+    content=()
+    while IFS= read -r line || [[ -n $line ]]; do
+        content+=("$line")
+    done < <(tmux capture-pane -t "$session" -p -e 2>/dev/null)
+
+    # drop trailing blank lines (only whitespace and/or ANSI codes)
+    blank_re="^(${esc}[[][0-9;]*m|[[:space:]])*$"
+    count=${#content[@]}
+    while (( count > 0 )) && [[ ${content[count - 1]} =~ $blank_re ]]; do
+        (( count-- ))
+    done
+
+    # if still taller than the budget, drop lines from the top (keep the bottom)
+    start=0
+    if (( preview_lines > 0 )); then
+        budget=$(( preview_lines - header_rows ))
+        (( budget < 1 )) && budget=1
+        if (( count > budget )); then
+            start=$(( count - budget ))
+        fi
+    fi
+
+    for line in "${header[@]}"; do
+        printf '%s\n' "$line"
+    done
+    for (( i = start; i < count; i++ )); do
+        printf '%s\n' "${content[i]}"
+    done
 
 elif [[ "$path" == \!* ]]; then
     echo -e "\033[31mYou should export env variable SESSION_PATHS.\033[0m"
