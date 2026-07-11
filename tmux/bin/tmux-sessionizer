@@ -12,11 +12,12 @@ else
         if [[ -n $TMUX ]] || [[ -n $tmux_running ]]; then
             SESSIONS=""
             CURRENT_SESSION=$(tmux display-message -p '#S')
+            # sort by most recent use so the previous session lands first
             while IFS= read -r session; do
                 if [[ $session != "$CURRENT_SESSION" ]]; then
                     SESSIONS="$SESSIONS\033[1;34m* $session\033[0m\n"
                 fi
-            done < <(tmux list-sessions -F "#{session_name}" 2>/dev/null)
+            done < <(tmux list-sessions -F "#{session_last_attached} #{session_name}" 2>/dev/null | sort -rn | cut -d' ' -f2-)
             echo -e "$SESSIONS"
         fi
 
