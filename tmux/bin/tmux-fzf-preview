@@ -5,6 +5,7 @@
 path=$1
 if [[ "$path" == \** ]]; then
     session=${path:2}
+    session=${session% ✻}
 
     esc=$'\033'
     reset="${esc}[0m"

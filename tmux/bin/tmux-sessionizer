@@ -12,9 +12,28 @@ else
         if [[ -n $TMUX ]] || [[ -n $tmux_running ]]; then
             SESSIONS=""
             CURRENT_SESSION=$(tmux display-message -p '#S')
+
+            # sessions that currently have a waiting-claude marker; newline
+            # delimited so the membership test below is exact and space-safe
+            WAITING=$'\n'
+            marker_dir="${CLAUDE_WAITING_DIR:-/tmp/tmux-claude-waiting-${UID}}"
+            if [[ -d $marker_dir ]]; then
+                pane_map=$(tmux list-panes -a -F '#{pane_id} #{session_name}' 2>/dev/null)
+                for marker in "$marker_dir"/*; do
+                    [[ -e $marker ]] || continue
+                    marked=$(printf '%s\n' "$pane_map" | awk -v p="$(basename "$marker")" '$1 == p { s = $2; for (i = 3; i <= NF; i++) s = s " " $i; print s; exit }')
+                    [[ -n $marked ]] && WAITING="$WAITING$marked"$'\n'
+                done
+            fi
+
             # sort by most recent use so the previous session lands first
             while IFS= read -r session; do
-                if [[ $session != "$CURRENT_SESSION" ]]; then
+                if [[ $session == "$CURRENT_SESSION" ]]; then
+                    continue
+                fi
+                if [[ $WAITING == *$'\n'"$session"$'\n'* ]]; then
+                    SESSIONS="$SESSIONS\033[1;34m* $session\033[0m \033[1;31m✻\033[0m\n"
+                else
                     SESSIONS="$SESSIONS\033[1;34m* $session\033[0m\n"
                 fi
             done < <(tmux list-sessions -F "#{session_last_attached} #{session_name}" 2>/dev/null | sort -rn | cut -d' ' -f2-)
@@ -46,9 +65,10 @@ if [[ -z $path ]]; then
     exit 0
 fi
 
-# remove leading '* ' from session name
+# remove leading '* ' and any trailing waiting marker from the session name
 if [[ $path == \** ]]; then
     path=${path:2}
+    path=${path% ✻}
 fi
 
 # format session name
