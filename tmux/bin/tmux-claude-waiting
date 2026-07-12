@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# by Andrey A. Ugolnik
+# https://github.com/reybits
+#
+# Print, space-separated, the tmux sessions where a claude is waiting for
+# the user. A marker (set by tmux-claude-mark from Claude Code hooks) is
+# honored only if its pane still exists and still runs claude; stale markers
+# are removed. Output is empty when nothing waits, so the status segment
+# hides itself.
+
+dir="${CLAUDE_WAITING_DIR:-/tmp/tmux-claude-waiting-${UID}}"
+[ -d "$dir" ] || exit 0
+
+# all panes; bail without touching markers if the query yields nothing
+# (there is always at least one pane), so a transient failure never wipes
+# still-valid markers
+panes=$(tmux list-panes -a -F '#{pane_id} #{pane_current_command} #{session_attached} #{window_active} #{session_name}' 2>/dev/null)
+[ -n "$panes" ] || exit 0
+
+for marker in "$dir"/*; do
+    [ -e "$marker" ] || continue
+    pane=$(basename "$marker")
+    line=$(printf '%s\n' "$panes" | awk -v p="$pane" '$1 == p { print; exit }')
+    if [ -z "$line" ]; then
+        rm -f "$marker"                 # pane no longer exists
+        continue
+    fi
+    # fields: pane_id command attached window_active session (name may hold
+    # spaces). read avoids the word-splitting glob of `set --`; the last field
+    # captures the rest of the line, so spaces in the session name survive.
+    IFS=' ' read -r _pane cmd attached wactive session <<<"$line"
+    if [ "$cmd" != "claude" ]; then
+        rm -f "$marker"                 # replaced by something else, drop it
+        continue
+    fi
+    # you are looking at this window now, so you have seen it: clear the
+    # marker (acknowledged) and do not flag it. it returns only on a new wait
+    if [ "$attached" != "0" ] && [ "$wactive" = "1" ]; then
+        rm -f "$marker"
+        continue
+    fi
+    printf '%s\n' "$session"
+done | sort -u | paste -sd ' ' -

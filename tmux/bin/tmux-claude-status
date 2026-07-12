@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# by Andrey A. Ugolnik
+# https://github.com/reybits
+#
+# Recompute the "claude is waiting" list into the @claude_waiting tmux option
+# and force every client's status to redraw. Called from the Claude Code hooks
+# and from tmux navigation hooks, so the indicator updates the instant state
+# changes -- unlike a #() in status-right, whose output tmux caches until the
+# next poll.
+
+value=$("$HOME/.config/tmux/bin/tmux-claude-waiting" 2>/dev/null)
+tmux set-option -g @claude_waiting "$value" 2>/dev/null
+
+# a #{@option} in status-right is re-read on every redraw; refresh-client -S
+# forces that redraw. do it for every client (the waiting claude may be in a
+# detached session while your client is on another).
+tmux list-clients -F '#{client_name}' 2>/dev/null | while IFS= read -r client; do
+    [ -n "$client" ] && tmux refresh-client -S -t "$client" 2>/dev/null
+done

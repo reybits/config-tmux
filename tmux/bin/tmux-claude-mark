@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# by Andrey A. Ugolnik
+# https://github.com/reybits
+#
+# Called by Claude Code hooks to mark whether the claude running in this
+# tmux pane is waiting for the user. The marker is a file named after the
+# tmux pane id, so several claude instances never clobber each other.
+# Usage: tmux-claude-mark wait|clear
+
+[ -n "$TMUX_PANE" ] || exit 0   # claude is not inside tmux, nothing to track
+
+dir="${CLAUDE_WAITING_DIR:-/tmp/tmux-claude-waiting-${UID}}"
+
+case "$1" in
+    wait)
+        # if you are looking at this pane's window right now, you have already
+        # seen it, so there is nothing to flag
+        view=$(tmux display-message -t "$TMUX_PANE" -p '#{session_attached}:#{window_active}' 2>/dev/null)
+        case "$view" in
+            *:1)
+                case "$view" in
+                    0:*) ;;                 # session not attached -> flag
+                    *) exit 0 ;;            # attached AND active window -> seen
+                esac
+                ;;
+        esac
+        mkdir -p "$dir"
+        chmod 700 "$dir" 2>/dev/null   # markers live in world-writable /tmp
+        : >"$dir/$TMUX_PANE"
+        ;;
+    clear)
+        rm -f "$dir/$TMUX_PANE"
+        ;;
+esac
+
+# push the change to the status bar immediately
+"$HOME/.config/tmux/bin/tmux-claude-status"
